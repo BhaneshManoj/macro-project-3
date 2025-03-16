@@ -55,7 +55,7 @@ Revenue, Capex, Debt-to-Equity Ratio for selected firms (2004–2012)
 ### General Requirements:
 RStudio / R  for part 1 and 2 
 
-Packages: ggplot2, dplyr, zoo, readxl, tidyverse, scales, 
+Packages: ggplot2, dplyr, zoo, readxl, tidyverse, scales, mFilter, 
 
 Python for part 3
 
