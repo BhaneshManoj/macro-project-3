@@ -1,0 +1,334 @@
+rm(list=ls())
+
+
+# Install required packages 
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("zoo")
+install.packages("mFilter")
+
+# Load the libraries
+library(ggplot2)
+library(dplyr)
+library(zoo)
+library(tidyr)
+library(scales)
+library(mFilter)
+library(data.table)
+
+#Rename Data frame
+Macro_Data3 <- Data3
+
+
+# Columns to Interpolate
+columns_to_interpolate <- c("JAP_GDP", "SWI_LFPR","JAP_10YRBY", "JAP_HP", "SWI_OECD", "USA_BEER", "SWI_BEER", "JAP_BEER", "USA_HP", "SWI_HP", "USA_OECD","JAP_OECD","USA_CPI","JAP_CPI","SWI_CPI","USA_Manu","SWI_Manu","JAP_Manu","USA_S&P","JAP_NIKKEI")
+
+# Apply interpolation to each column last observed value
+Macro_Data3[columns_to_interpolate] <- lapply(Macro_Data3[columns_to_interpolate], zoo::na.approx, rule = 2, na.rm = TRUE)
+
+# Check the result
+head(Macro_Data3)
+
+# Transform data set to allow for observations by country by year
+# Selection by variable names with underscore delimiter
+# Grab first three characters of variable for country tag
+# Reassign variables to individual columns
+Macro_Data_3Final <- Macro_Data3 %>%
+  pivot_longer(
+    cols = ends_with("GDP")| ends_with("LFPR")| ends_with("BEER")| ends_with("10YRBY")|ends_with("HP")| ends_with("OECD")| ends_with("CPI")|ends_with("Manu")|ends_with("S&P")|ends_with("NIKKEI"),   
+    names_to = c("Country", "Variable"),         
+    names_sep = "_",                             
+    values_to = "Value"                         
+  ) %>%
+  mutate(
+    Country = substr(Country, 1, 3)  # Extract first 3 characters for the country tag (e.g., "SGP" for Singapore)
+  ) %>%
+  pivot_wider(                                   
+    names_from = "Variable",                     
+    values_from = "Value"                        
+  )
+#Rename Column
+setnames(Macro_Data_3Final, "10YRBY", "tenyrby")
+setnames(Macro_Data_3Final, "S&P", "SANDP")
+
+# Apply second interpolation S&P/Nikkei columns to fill in observations for each country
+columns_to_interpolate2 <- c("SANDP", "NIKKEI")
+Macro_Data_3Final[columns_to_interpolate2] <- lapply(Macro_Data_3Final[columns_to_interpolate2], zoo::na.approx, rule = 2, na.rm = TRUE)
+
+
+# Adjusting data for time series analysis & add variable to table
+GDP_ts <- ts(Macro_Data_3Final$GDP, frequency = 4, start = c(1980, 1))  
+LFPR_ts <- ts(Macro_Data_3Final$LFPR, frequency = 4, start = c(1980, 1))
+BEER_ts <- ts(Macro_Data_3Final$BEER, frequency = 4, start = c(1980, 1))
+tenyrby_ts <- ts(Macro_Data_3Final$tenyrby, frequency = 4, start = c(1980, 1))
+HP_ts <- ts(Macro_Data_3Final$HP, frequency = 4, start = c(1980, 1))
+OECD_ts <- ts(Macro_Data_3Final$OECD, frequency = 4, start = c(1980, 1))
+CPI_ts <- ts(Macro_Data_3Final$CPI, frequency = 4, start = c(1980, 1))
+Manu_ts <- ts(Macro_Data_3Final$Manu, frequency = 4, start = c(1980, 1))
+SANDP_ts <- ts(Macro_Data_3Final$SANDP, frequency = 4, start = c(1980, 1))
+NIKKEI_ts <- ts(Macro_Data_3Final$NIKKEI, frequency = 4, start = c(1980, 1))
+
+Macro_Data_3Final$GDP_ts <- Macro_Data_3Final$GDP
+Macro_Data_3Final$LFPR_ts <- Macro_Data_3Final$LFPR
+Macro_Data_3Final$BEER_ts <- Macro_Data_3Final$BEER
+Macro_Data_3Final$tenyrby_ts <- Macro_Data_3Final$tenyrby
+Macro_Data_3Final$HP_ts <- Macro_Data_3Final$HP
+Macro_Data_3Final$OECD_ts <- Macro_Data_3Final$OECD
+Macro_Data_3Final$CPI_ts <- Macro_Data_3Final$CPI
+Macro_Data_3Final$Manu_ts <- Macro_Data_3Final$Manu
+Macro_Data_3Final$SANDP_ts <- Macro_Data_3Final$SANDP
+Macro_Data_3Final$NIKKEI_ts <- Macro_Data_3Final$NIKKEI
+
+
+# Apply HP filter to variables
+gdp_hpf <- hpfilter(GDP_ts, freq = 1600)
+lfpr_hpf <- hpfilter(LFPR_ts, freq = 1600)
+beer_hpf <- hpfilter(BEER_ts, freq = 1600)
+tenyrby_hpf <- hpfilter(tenyrby_ts, freq = 1600)
+hp_hpf <- hpfilter(HP_ts, freq = 1600)
+oecd_hpf <- hpfilter(OECD_ts, freq = 1600)
+cpi_hpf <- hpfilter(CPI_ts, freq = 1600)
+Manu_hpf <- hpfilter(Manu_ts, freq = 1600)
+SANDP_hpf <- hpfilter(SANDP_ts, freq = 1600)
+NIKKEI_hpf <- hpfilter(NIKKEI_ts, freq = 1600)
+
+# Extract the trend and cycle components for each variable
+gdp_trend <- gdp_hpf$trend
+gdp_cycle <- gdp_hpf$cycle
+lfpr_trend <- lfpr_hpf$trend
+lfpr_cycle <- lfpr_hpf$cycle
+beer_trend <- beer_hpf$trend
+beer_cycle <- beer_hpf$cycle
+tenyrby_trend <- tenyrby_hpf$trend
+tenyrby_cycle <- tenyrby_hpf$cycle
+hp_trend <- hp_hpf$trend
+hp_cycle <- hp_hpf$cycle
+oecd_trend <- oecd_hpf$trend
+oecd_cycle <- oecd_hpf$cycle
+cpi_trend <- cpi_hpf$trend
+cpi_cycle <- cpi_hpf$cycle
+manu_trend <- Manu_hpf$trend
+manu_cycle <- Manu_hpf$cycle
+SANDP_trend <- SANDP_hpf$trend
+SANDP_cycle <- SANDP_hpf$cycle
+NIKKEI_trend <- NIKKEI_hpf$trend
+NIKKEI_cycle <- NIKKEI_hpf$cycle
+
+
+#Add trend and cycle variables to the data frame
+Macro_Data_3Final$gdp_trend <- gdp_trend
+Macro_Data_3Final$lfpr_trend <- lfpr_trend
+Macro_Data_3Final$beer_trend <- beer_trend
+Macro_Data_3Final$tenyrby_trend <- tenyrby_trend
+Macro_Data_3Final$hp_trend <- hp_trend
+Macro_Data_3Final$oecd_trend <- oecd_trend
+Macro_Data_3Final$cpi_trend <- cpi_trend
+Macro_Data_3Final$manu_trend <- manu_trend
+Macro_Data_3Final$SANDP_trend <- SANDP_trend
+Macro_Data_3Final$NIKKEI_trend <- NIKKEI_trend
+Macro_Data_3Final$gdp_cycle <- gdp_cycle
+Macro_Data_3Final$lfpr_cycle <- lfpr_cycle
+Macro_Data_3Final$beer_cycle <- beer_cycle
+Macro_Data_3Final$tenyrby_cycle <- tenyrby_cycle
+Macro_Data_3Final$hp_cycle <- hp_cycle
+Macro_Data_3Final$oecd_cycle <- oecd_cycle
+Macro_Data_3Final$cpi_cycle <- cpi_cycle
+Macro_Data_3Final$manu_cycle <- manu_cycle
+Macro_Data_3Final$SANDP_cycle <- SANDP_cycle
+Macro_Data_3Final$NIKKEI_cycle <- NIKKEI_cycle
+
+
+
+# 12-period rolling standard deviation for the GDP cycle
+Macro_Data_3Final$rolling_sd_gdp <- rollapply(Macro_Data_3Final$gdp_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_lfpr <- rollapply(Macro_Data_3Final$lfpr_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_beer <- rollapply(Macro_Data_3Final$beer_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_tenyrby <- rollapply(Macro_Data_3Final$tenyrby_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_hp <- rollapply(Macro_Data_3Final$hp_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_oecd <- rollapply(Macro_Data_3Final$oecd_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_cpi <- rollapply(Macro_Data_3Final$cpi_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_manu <- rollapply(Macro_Data_3Final$manu_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_SANDP <- rollapply(Macro_Data_3Final$SANDP_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+Macro_Data_3Final$rolling_sd_NIKKEI <- rollapply(Macro_Data_3Final$NIKKEI_cycle, width = 12, FUN = sd, align = "right", fill = NA)
+
+
+
+# Calculate the percentage change of the rolling standard deviation for GDP
+Macro_Data_3Final$rolling_sd_gdp_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_gdp) / head(Macro_Data_3Final$rolling_sd_gdp, -1) * 100)
+Macro_Data_3Final$rolling_sd_lfpr_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_lfpr) / head(Macro_Data_3Final$rolling_sd_lfpr, -1) * 100)
+Macro_Data_3Final$rolling_sd_beer_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_beer) / head(Macro_Data_3Final$rolling_sd_beer, -1) * 100)
+Macro_Data_3Final$rolling_sd_tenyrby_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_tenyrby) / head(Macro_Data_3Final$rolling_sd_tenyrby, -1) * 100)
+Macro_Data_3Final$rolling_sd_hp_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_hp) / head(Macro_Data_3Final$rolling_sd_hp, -1) * 100)
+Macro_Data_3Final$rolling_sd_oecd_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_oecd) / head(Macro_Data_3Final$rolling_sd_oecd, -1) * 100)
+Macro_Data_3Final$rolling_sd_cpi_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_cpi) / head(Macro_Data_3Final$rolling_sd_cpi, -1) * 100)
+Macro_Data_3Final$rolling_sd_manu_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_manu) / head(Macro_Data_3Final$rolling_sd_manu, -1) * 100)
+Macro_Data_3Final$rolling_sd_SANDP_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_SANDP) / head(Macro_Data_3Final$rolling_sd_SANDP, -1) * 100)
+Macro_Data_3Final$rolling_sd_NIKKEI_pct_change <- c(NA, diff(Macro_Data_3Final$rolling_sd_NIKKEI) / head(Macro_Data_3Final$rolling_sd_NIKKEI, -1) * 100)
+
+
+#Adjust data set to country specific for individual analysis
+USA_data <- Macro_Data_3Final[Macro_Data_3Final$Country == "USA",]
+SWI_data <- Macro_Data_3Final[Macro_Data_3Final$Country == "SWI",]
+JAP_data <- Macro_Data_3Final[Macro_Data_3Final$Country == "JAP",]
+
+#Further adjustments for specific timeframes
+USA_year_filter <- USA_data %>%
+  filter(observation_date >= as.POSIXct("2014-01-01") & observation_date <= as.POSIXct("2024-10-01"))
+JAP_year_filter <- JAP_data %>%
+  filter(observation_date >= as.POSIXct("2014-01-01") & observation_date <= as.POSIXct("2024-10-01"))
+SWI_year_filter <- SWI_data %>%
+  filter(observation_date >= as.POSIXct("2014-01-01") & observation_date <= as.POSIXct("2024-10-01"))
+USA_year_filter2 <- USA_data %>%
+  filter(observation_date >= as.POSIXct("2000-01-01") & observation_date <= as.POSIXct("2024-10-01"))
+JAP_year_filter2 <- JAP_data %>%
+  filter(observation_date >= as.POSIXct("2000-01-01") & observation_date <= as.POSIXct("2024-10-01"))
+SWI_year_filter2 <- SWI_data %>%
+  filter(observation_date >= as.POSIXct("2000-01-01") & observation_date <= as.POSIXct("2024-10-01"))
+
+
+#Output and Financial market plots USA, JAP, SWI
+#USA Manu/S&P
+ggplot(USA_year_filter2, aes(x = observation_date)) + 
+  geom_line(aes(y = rolling_sd_manu_pct_change, color = "Manufacturing"), linetype="dashed", size=1) +  # Line for rolling standard deviation (blue, dashed)
+  geom_line(aes(y = rolling_sd_SANDP_pct_change, color = "S&P 500"), size=1) +  # Line for rolling standard deviation (black)
+  geom_hline(yintercept = 0, color = "black", linetype = "solid") +  # Horizontal line at y = 0
+  labs(title = "S&P 500/Manufacturing Volatility 2000-2024",
+       x = "Year",
+       y = "% change") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better visibility
+        panel.grid.major = element_blank(),  # Remove major gridlines
+        panel.grid.minor = element_blank(),  # Remove minor gridlines
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(-50, 100), breaks = seq(-50, 100, by = 10)) +  # Set Y-axis limits
+  scale_x_datetime(date_breaks = "5 year", date_labels = "%Y") +  # List each year on the X-axis (using POSIXct)
+  scale_color_manual(values = c("Manufacturing" = "blue", "S&P 500" = "black")) +  # Custom colors for the lines
+  guides(color = guide_legend(title = "Variables"))  # Title for the legend
+
+#JAP Manu/NIKKEI
+ggplot(JAP_year_filter2, aes(x = observation_date)) + 
+  geom_line(aes(y = rolling_sd_manu_pct_change, color = "Manufacturing"), linetype="dashed", size=1) +  # Line for rolling standard deviation (blue, dashed)
+  geom_line(aes(y = rolling_sd_NIKKEI_pct_change, color = "NIKKEI"), size=1) +  # Line for rolling standard deviation (black)
+  geom_hline(yintercept = 0, color = "black", linetype = "solid") +  # Horizontal line at y = 0
+  labs(title = "NIKKEI/Manufacturing Volatility 2000-2024",
+       x = "Year",
+       y = "% change") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better visibility
+        panel.grid.major = element_blank(),  # Remove major gridlines
+        panel.grid.minor = element_blank(),  # Remove minor gridlines
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(-50, 100), breaks = seq(-50, 100, by = 10)) +  # Set Y-axis limits
+  scale_x_datetime(date_breaks = "5 year", date_labels = "%Y") +  # List each year on the X-axis (using POSIXct)
+  scale_color_manual(values = c("Manufacturing" = "blue", "NIKKEI" = "black")) +  # Custom colors for the lines
+  guides(color = guide_legend(title = "Variables"))  # Title for the legend
+
+#output and labor plots
+#USA Manu/LFPR
+ggplot(USA_year_filter2, aes(x = observation_date)) + 
+  geom_line(aes(y = rolling_sd_manu_pct_change, color = "Manufacturing"), linetype="dashed", size=1) +  # Line for rolling standard deviation (blue, dashed)
+  geom_line(aes(y = rolling_sd_lfpr_pct_change, color = "LFPR"), size=1) +  # Line for rolling standard deviation (black)
+  geom_hline(yintercept = 0, color = "black", linetype = "solid") +  # Horizontal line at y = 0
+  labs(title = "Labor Force Participation Rate/Manufacturing Volatility (USA)",
+       x = "Year",
+       y = "% change") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better visibility
+        panel.grid.major = element_blank(),  # Remove major gridlines
+        panel.grid.minor = element_blank(),  # Remove minor gridlines
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(-50, 100), breaks = seq(-50, 100, by = 10)) +  # Set Y-axis limits
+  scale_x_datetime(date_breaks = "5 year", date_labels = "%Y") +  # List each year on the X-axis (using POSIXct)
+  scale_color_manual(values = c("Manufacturing" = "blue", "LFPR" = "black")) +  # Custom colors for the lines
+  guides(color = guide_legend(title = "Variables"))  # Title for the legend
+
+#JAP Manu/LFPR
+ggplot(JAP_year_filter2, aes(x = observation_date)) + 
+  geom_line(aes(y = rolling_sd_manu_pct_change, color = "Manufacturing"), linetype="dashed", size=1) +  # Line for rolling standard deviation (blue, dashed)
+  geom_line(aes(y = rolling_sd_lfpr_pct_change, color = "LFPR"), size=1) +  # Line for rolling standard deviation (black)
+  geom_hline(yintercept = 0, color = "black", linetype = "solid") +  # Horizontal line at y = 0
+  labs(title = "Labor Force Participation Rate/Manufacturing Volatility (JAP)",
+       x = "Year",
+       y = "% change") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better visibility
+        panel.grid.major = element_blank(),  # Remove major gridlines
+        panel.grid.minor = element_blank(),  # Remove minor gridlines
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(-50, 50), breaks = seq(-50, 100, by = 10)) +  # Set Y-axis limits
+  scale_x_datetime(date_breaks = "5 year", date_labels = "%Y") +  # List each year on the X-axis (using POSIXct)
+  scale_color_manual(values = c("Manufacturing" = "blue", "LFPR" = "black")) +  # Custom colors for the lines
+  guides(color = guide_legend(title = "Variables"))  # Title for the legend
+
+#SWI Manu/LFPR
+ggplot(SWI_year_filter2, aes(x = observation_date)) + 
+  geom_line(aes(y = rolling_sd_manu_pct_change, color = "Manufacturing"), linetype="dashed", size=1) +  # Line for rolling standard deviation (blue, dashed)
+  geom_line(aes(y = rolling_sd_lfpr_pct_change, color = "LFPR"), size=1) +  # Line for rolling standard deviation (black)
+  geom_hline(yintercept = 0, color = "black", linetype = "solid") +  # Horizontal line at y = 0
+  labs(title = "Labor Force Participation Rate/Manufacturing Volatility (SWI)",
+       x = "Year",
+       y = "% change") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better visibility
+        panel.grid.major = element_blank(),  # Remove major gridlines
+        panel.grid.minor = element_blank(),  # Remove minor gridlines
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(-100, 100), breaks = seq(-50, 100, by = 10)) +  # Set Y-axis limits
+  scale_x_datetime(date_breaks = "5 year", date_labels = "%Y") +  # List each year on the X-axis (using POSIXct)
+  scale_color_manual(values = c("Manufacturing" = "blue", "LFPR" = "black")) +  # Custom colors for the lines
+  guides(color = guide_legend(title = "Variables"))  # Title for the legend
+
+#Manufacturing/OECD
+#usa/manu oecd
+ggplot(USA_year_filter2, aes(x = observation_date)) + 
+  geom_line(aes(y = rolling_sd_manu_pct_change, color = "Manufacturing"), linetype="dashed", size=2) +  # Line for rolling standard deviation (blue, dashed)
+  geom_line(aes(y = rolling_sd_oecd_pct_change, color = "Commodities"), size=1) +  # Line for rolling standard deviation (black)
+  geom_hline(yintercept = 0, color = "black", linetype = "solid") +  # Horizontal line at y = 0
+  labs(title = "Commodities Index/Manufacturing Volatility(USA)",
+       x = "Year",
+       y = "% change") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better visibility
+        panel.grid.major = element_blank(),  # Remove major gridlines
+        panel.grid.minor = element_blank(),  # Remove minor gridlines
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(-40, 80), breaks = seq(-50, 100, by = 10)) +  # Set Y-axis limits
+  scale_x_datetime(date_breaks = "5 year", date_labels = "%Y") +  # List each year on the X-axis (using POSIXct)
+  scale_color_manual(values = c("Manufacturing" = "blue", "Commodities" = "black")) +  # Custom colors for the lines
+  guides(color = guide_legend(title = "Variables"))  # Title for the legend
+
+#Jap manu/oecd
+ggplot(JAP_year_filter2, aes(x = observation_date)) + 
+  geom_line(aes(y = rolling_sd_manu_pct_change, color = "Manufacturing"), linetype="dashed", size=1) +  # Line for rolling standard deviation (blue, dashed)
+  geom_line(aes(y = rolling_sd_oecd_pct_change, color = "Commodities"), size=1) +  # Line for rolling standard deviation (black)
+  geom_hline(yintercept = 0, color = "black", linetype = "solid") +  # Horizontal line at y = 0
+  labs(title = "Commodities Index/Manufacturing Volatility (JAP)",
+       x = "Year",
+       y = "% change") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better visibility
+        panel.grid.major = element_blank(),  # Remove major gridlines
+        panel.grid.minor = element_blank(),  # Remove minor gridlines
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(-70, 70), breaks = seq(-50, 100, by = 10)) +  # Set Y-axis limits
+  scale_x_datetime(date_breaks = "5 year", date_labels = "%Y") +  # List each year on the X-axis (using POSIXct)
+  scale_color_manual(values = c("Manufacturing" = "blue", "Commodities" = "black")) +  # Custom colors for the lines
+  guides(color = guide_legend(title = "Variables"))  # Title for the legend
+
+#SWI manu/oecd
+ggplot(SWI_year_filter2, aes(x = observation_date)) + 
+  geom_line(aes(y = rolling_sd_manu_pct_change, color = "Manufacturing"), linetype="dashed", size=1) +  # Line for rolling standard deviation (blue, dashed)
+  geom_line(aes(y = rolling_sd_oecd_pct_change, color = "Commodities"), size=1) +  # Line for rolling standard deviation (black)
+  geom_hline(yintercept = 0, color = "black", linetype = "solid") +  # Horizontal line at y = 0
+  labs(title = "Commodities Index/Manufacturing Volatility (SWI)",
+       x = "Year",
+       y = "% change") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better visibility
+        panel.grid.major = element_blank(),  # Remove major gridlines
+        panel.grid.minor = element_blank(),  # Remove minor gridlines
+        plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(-100, 100), breaks = seq(-50, 100, by = 10)) +  # Set Y-axis limits
+  scale_x_datetime(date_breaks = "5 year", date_labels = "%Y") +  # List each year on the X-axis (using POSIXct)
+  scale_color_manual(values = c("Manufacturing" = "blue", "Commodities" = "black")) +  # Custom colors for the lines
+  guides(color = guide_legend(title = "Variables"))  # Title for the legend
