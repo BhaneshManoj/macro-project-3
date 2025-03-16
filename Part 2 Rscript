@@ -8,10 +8,10 @@ df$Date <- as.Date(df$Date, format = "%d/%m/%Y")
 
 write.csv(df, "cleaned_data.csv", row.names = FALSE)
 
+#Load the libraries
 library(ggplot2)
 library(dplyr)
 library(zoo)
-
 
 # GFC Data (2004–2014)
 df_gfc <- df %>% filter(Date >= as.Date("2004-01-01") & Date <= as.Date("2014-12-31"))
