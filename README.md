@@ -65,6 +65,10 @@ packages : Numpy, Pandas and Matplotlib
 ### Part 1: Cross-Country Business Cycle Analysis
 Upload 'Rscript Part1 Project3.txt'
 
+Run scripts to process macroeconomic indicators for the U.S., Switzerland, and Japan
+
+Generate cyclical components and volatility analysis
+
 ### Part 2: Event Study – GFC & COVID-19 (U.S.)
 Open 'Part2_event_study_GFC_COVID.R'
 
