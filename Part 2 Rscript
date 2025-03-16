@@ -4,14 +4,14 @@ df = read.csv("Part2.csv")
 
 colnames(df) <- c("Date", "GDP_growth", "Unemployment", "SP500")
 
-df$Date <- as.Date(df$Date, format = "%d/%m/%Y") # Ensure it's in Date format
+df$Date <- as.Date(df$Date, format = "%d/%m/%Y") 
 
 write.csv(df, "cleaned_data.csv", row.names = FALSE)
 
+#load the libraries
 library(ggplot2)
 library(dplyr)
 library(zoo)
-
 
 # GFC Data (2004–2014)
 df_gfc <- df %>% filter(Date >= as.Date("2004-01-01") & Date <= as.Date("2014-12-31"))
@@ -24,11 +24,10 @@ recession_period <- data.frame(
 # COVID-19 Data (2014–2024)
 df_covid <- df %>% filter(Date >= "2015-01-01" & Date <= "2024-12-31")
 
-# Define the COVID-19 recession period for shading (official NBER period)
+# Define the COVID-19 recession period (official NBER period)
 recession_covid <- data.frame(
   start = as.Date("2020-02-01"),
   end = as.Date("2020-04-30"))
-
 
 # Graph for GFC (2004–2014)
 ggplot(df_gfc, aes(x = Date)) +
