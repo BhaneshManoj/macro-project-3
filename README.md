@@ -27,6 +27,12 @@ The analysis uses historical data from FRED and Yahoo Finance to track Real GDP 
 Overview
 Examines the responses of Apple, General Electric (GE), Ford, and Walmart to the Global Financial Crisis (2007–2009) using quarterly financial data from 2004 to 2012 (WRDS Compustat). The analysis focuses on Revenue Growth, Capital Expenditure (Capex), and Debt-to-Equity Ratios. It highlights sectoral differences in how firms managed demand shocks, investment decisions, and financial leverage, with insights into their resilience and recovery paths post-crisis.
 
+## Script used to conduct analysis.
+
+*   `R_Script_Macro.R`: Part 1 Analysis
+*   `R_Script_Macro.R`: Part 2 Analysis
+*   `final_`: Part 3 Analysis
+
 ## Data Sources
 ### Macroeconomic Data
    Real GDP Growth (%), Unemployment Rate (%) (2000–2024)
