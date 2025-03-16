@@ -1,0 +1,40 @@
+df = read.csv("Part2.csv")
+
+colnames(df) <- c("Date", "GDP_growth", "Unemployment", "SP500")
+
+df$Date <- as.Date(df$Date, format = "%d/%m/%Y") # Ensure it's in Date format
+
+write.csv(df, "cleaned_data.csv", row.names = FALSE)
+
+library(ggplot2)
+library(dplyr)
+library(zoo)
+
+
+# GFC Data (2004–2014)
+df_gfc <- df %>% filter(Date >= as.Date("2004-01-01") & Date <= as.Date("2014-12-31"))
+
+
+# COVID-19 Data (2014–2024)
+df_covid <- df %>% filter(Date >= "2015-01-01" & Date <= "2024-12-31")
+
+# Graph for GFC (2004–2014)
+ggplot(df_gfc, aes(x = Date)) +
+  geom_line(aes(y = GDP_growth, color = "Real GDP Growth (percent)")) +
+  geom_line(aes(y = Unemployment, color = "Unemployment Rate")) +
+  geom_line(aes(y = SP500, color = "S&P 500 Index")) +
+  geom_line(aes(y = SP500, color = "S&P 500 Index")) + 
+  geom_hline(yintercept = 0, color = "black", size = 0.5)+
+  scale_x_date(date_breaks = "2 year",date_labels = "%Y") +
+  labs(title = "Figure 2.1: Global Financial Crisis (2007–2009)", y = "Value", color = "Indicator") +
+  theme_minimal()
+
+# Graph for COVID-19 (2014–2024)
+ggplot(df_covid, aes(x = Date)) +
+  geom_line(aes(y = GDP_growth, color = "Real GDP Growth (percent)")) +
+  geom_line(aes(y = Unemployment, color = "Unemployment Rate")) +
+  geom_line(aes(y = SP500, color = "S&P 500 Index")) +
+  geom_hline(yintercept = 0, color = "black", size = 0.5)+
+  scale_x_date(date_breaks = "2 year",date_labels = "%Y") +
+  labs(title = "Figure 2.2: COVID-19 Pandemic (2019-2021)", y = "Value", color = "Indicator") +
+  theme_minimal()
