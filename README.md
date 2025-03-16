@@ -35,13 +35,13 @@ Examines the responses of Apple, General Electric (GE), Ford, and Walmart to the
    Federal Reserve Economic Data (FRED)
 
 ### Financial Market Data
-   S&P 500 Index (converted to percentage changes) (2000–2024)
+S&P 500 Index (converted to percentage changes) (2000–2024)
 
 #### Source
-	Yahoo Finance (^GSPC)
+Yahoo Finance (^GSPC)
 
  ### Firm-Level Financial Data
-    Revenue, Capex, Debt-to-Equity Ratio for selected firms (2004–2012)
+Revenue, Capex, Debt-to-Equity Ratio for selected firms (2004–2012)
 
 #### Source
    WRDS Compustat Database
@@ -55,7 +55,7 @@ Examines the responses of Apple, General Electric (GE), Ford, and Walmart to the
 ### General Requirements:
 RStudio / R  for part 1 and 2 
 
-Packages: ggplot2, dplyr, zoo, readxl
+Packages: ggplot2, dplyr, zoo, readxl, tidyverse, scales, 
 
 Python for part 3
 
