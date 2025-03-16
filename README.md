@@ -35,7 +35,7 @@ Examines the responses of Apple, General Electric (GE), Ford, and Walmart to the
 
 ## Data Sources
 ### Macroeconomic Data
-   Real GDP Growth (%), Unemployment Rate (%) (2000–2024)
+   Real GDP Growth (%), Unemployment Rate (%), Labor Participation Rate (%), Manufacturing, OECD Energy Index
 
 #### Source
    Federal Reserve Economic Data (FRED)
