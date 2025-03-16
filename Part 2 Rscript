@@ -1,3 +1,5 @@
+rm(list=ls())
+
 df = read.csv("Part2.csv")
 
 colnames(df) <- c("Date", "GDP_growth", "Unemployment", "SP500")
