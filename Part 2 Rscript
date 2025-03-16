@@ -4,7 +4,7 @@ df = read.csv("Part2.csv")
 
 colnames(df) <- c("Date", "GDP_growth", "Unemployment", "SP500")
 
-df$Date <- as.Date(df$Date, format = "%d/%m/%Y") # Ensure it's in Date format
+df$Date <- as.Date(df$Date, format = "%d/%m/%Y")
 
 write.csv(df, "cleaned_data.csv", row.names = FALSE)
 
