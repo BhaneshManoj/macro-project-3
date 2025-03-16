@@ -29,9 +29,9 @@ Examines the responses of Apple, General Electric (GE), Ford, and Walmart to the
 
 ## Script used to conduct analysis.
 
-*   `R_Script_Macro.R`: Part 1 Analysis
-*   `R_Script_Macro.R`: Part 2 Analysis
-*   `final_`: Part 3 Analysis
+*   `Rscript Part1 Project3.txt`: Part 1 Analysis
+*   `Part2_event_study_GFC_COVID.R`: Part 2 Analysis
+*   `final_firmlevelresponse.py`: Part 3 Analysis
 
 ## Data Sources
 ### Macroeconomic Data
