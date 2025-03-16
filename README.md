@@ -52,10 +52,6 @@ Revenue, Capex, Debt-to-Equity Ratio for selected firms (2004–2012)
 #### Source
    WRDS Compustat Database
 
-## File Descriptions
-
-
-
 ## How to Reproduce the Analyses
 
 ### General Requirements:
@@ -64,6 +60,7 @@ RStudio / R  for part 1 and 2
 Packages: ggplot2, dplyr, zoo, readxl, tidyverse, scales, mFilter, 
 
 Python for part 3
+packages : Numpy, Pandas and Matplotlib
 
 ### Part 1: Cross-Country Business Cycle Analysis
 Upload 'Rscript Part1 Project3.txt'
