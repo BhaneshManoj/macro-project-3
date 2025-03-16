@@ -6,8 +6,6 @@ colnames(df) <- c("Date", "GDP_growth", "Unemployment", "SP500")
 
 df$Date <- as.Date(df$Date, format = "%d/%m/%Y")
 
-write.csv(df, "cleaned_data.csv", row.names = FALSE)
-
 #Load the libraries
 library(ggplot2)
 library(dplyr)
