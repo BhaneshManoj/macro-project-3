@@ -45,6 +45,7 @@ S&P 500 Index (converted to percentage changes) (2000–2024,) NIKKEI (2000-2024
 
 #### Source
 Yahoo Finance (^GSPC)
+Federal Reserve Economic Data (FRED)
 
  ### Firm-Level Financial Data
 Revenue, Capex, Debt-to-Equity Ratio for selected firms (2004–2012)
