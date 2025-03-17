@@ -41,10 +41,10 @@ Examines the responses of Apple, General Electric (GE), Ford, and Walmart to the
    Federal Reserve Economic Data (FRED)
 
 ### Financial Market Data
-S&P 500 Index (converted to percentage changes) (2000–2024,) NIKKEI (2000-2024)
+S&P 500 Index (converted to percentage changes) (2000–2024), NIKKEI (2000-2024)
 
 #### Source
-Yahoo Finance (^GSPC)
+Yahoo Finance (^GSPC),
 Federal Reserve Economic Data (FRED)
 
  ### Firm-Level Financial Data
